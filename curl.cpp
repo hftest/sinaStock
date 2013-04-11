@@ -10,22 +10,41 @@ static char errorBuffer[CURL_ERROR_SIZE];
 int main()
 {
 	//char url[]="hq.sinajs.cn/list=sh701006";
-	char *list=new char[50000];
+	//char *list=new char[3000];
+	char (*p_list)[3000];
+	p_list=new char[3][3000];
 	FILE * SHlist=fopen("/root/Programs/Data/SHlist.l","r");
 	fseek(SHlist,0,SEEK_SET);
 	int end;
 	int index=0;
-	while((end=getc(SHlist))!='\n')
+	int i_list=0;
+	while((end=getc(SHlist))!=EOF)
 	{
-		list[index]=end;
-		index++;
+		//list[index]=end;
+		//index++;
 		//printf("%d:",index);
+//		p_list[i_list][index]=end;
+//		index++;
+		if(end=='\n')
+		{
+			p_list[i_list][index]='\0';
+			i_list++;
+			index=0;
+		}
+		else
+		{
+			p_list[i_list][index]=end;
+			index++;
+		}
 	}
-	list[index]='\0';	
-	char * url=new char[strlen(list)+19];
+	//list[index]='\0';	
+	FILE *file=fopen("a.thm","w+");
+	fseek(file,0,SEEK_SET);
+	for(int i=0;i<3;i++){
+	char * url=new char[strlen(p_list[i])+19];
 	strcpy(url,"hq.sinajs.cn/list=");
 //	char url[]="hq.sinajs.cn/list=";
-	strcat(url,list);
+	strcat(url,p_list[i]);
 	CURL *con=NULL;
 	CURLcode code;
 	string buffer;
@@ -44,11 +63,11 @@ int main()
 //	printf("#%s#\n",buffer.c_str());
 	printf("length: %d\n",buffer.size());
 //	printf("ERROR: %s\n",errorBuffer);
-	FILE *file=fopen("a.thm","w+");
-	fseek(file,0,SEEK_SET);
 	fwrite(buffer.c_str(),1,buffer.size(),file);
-	fclose(file);
+	delete url;
 	curl_easy_cleanup(con);
+	}
+	fclose(file);
 	return 0;
 }
 bool curlInit(CURL * & conn,char *url,string *buffer) 
