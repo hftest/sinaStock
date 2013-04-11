@@ -15,11 +15,11 @@ int main()
 	fseek(SHlist,0,SEEK_SET);
 	int end;
 	int index=0;
-	while((end=getc(SHlist))!=EOF)
+	while((end=getc(SHlist))!='\n')
 	{
 		list[index]=end;
 		index++;
-		printf("%d:",index);
+		//printf("%d:",index);
 	}
 	list[index]='\0';	
 	char * url=new char[strlen(list)+19];
