@@ -14,7 +14,7 @@ int main()
 	//char *list=new char[3000];
 	char (*p_list)[3000];
 	p_list=new char[3][3000];
-	FILE * SHlist=fopen("/root/Programs/Data/SHlist.l","r");
+	/*FILE * SHlist=fopen("/root/Programs/Data/SHlist.l","r");
 	fseek(SHlist,0,SEEK_SET);
 	int end;
 	int index=0;
@@ -38,14 +38,17 @@ int main()
 			index++;
 		}
 	}
+	*/
 	//list[index]='\0';	
 	FILE *file=fopen("a.thm","w+");
 	fseek(file,0,SEEK_SET);
-	for(int i=0;i<3;i++){
-	char * url=new char[strlen(p_list[i])+19];
-	strcpy(url,"hq.sinajs.cn/list=");
+//	for(int i=0;i<3;i++){
+//	char * url=new char[strlen(p_list[i])+19];
+	char * url=new char[50];
+	strcpy(url,"http://finance.sina.com.cn/realstock/company/");
 //	char url[]="hq.sinajs.cn/list=";
-	strcat(url,p_list[i]);
+//	strcat(url,p_list[i]);
+	strcat(url,"sh600837/nc.shtml");
 	CURL *con=NULL;
 	CURLcode code;
 	string buffer;
@@ -67,7 +70,7 @@ int main()
 	fwrite(buffer.c_str(),1,buffer.size(),file);
 	delete url;
 	curl_easy_cleanup(con);
-	}
+	//}
 	fclose(file);
 	return 0;
 }
