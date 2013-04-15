@@ -1,14 +1,15 @@
 #include <stdio.h>
+#include <string.h>
 #include <string>
 #include <time.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include "/root/source/curl-7.29.0/include/curl/curl.h"
+#include <curl/curl.h>
 using namespace std;
 bool curlInit(CURL * & conn,char *url,string *buffer); 
 static int writer(char * data, size_t size,size_t nmemb,string *writerData);
 static char errorBuffer[CURL_ERROR_SIZE];
-int main()
+int main(int argc,char ** argv)
 {
 	//char url[]="hq.sinajs.cn/list=sh701006";
 	//char *list=new char[3000];
@@ -40,11 +41,11 @@ int main()
 	}
 	*/
 	//list[index]='\0';	
-	FILE *file=fopen("a.thm","w+");
+	FILE *file=fopen("b.thm","w+");
 	fseek(file,0,SEEK_SET);
 //	for(int i=0;i<3;i++){
 //	char * url=new char[strlen(p_list[i])+19];
-	char * url=new char[50];
+	char * url=new char[500];
 	strcpy(url,"http://finance.sina.com.cn/realstock/company/");
 //	char url[]="hq.sinajs.cn/list=";
 //	strcat(url,p_list[i]);
@@ -68,6 +69,7 @@ int main()
 	printf("length: %d\n",buffer.size());
 //	printf("ERROR: %s\n",errorBuffer);
 	fwrite(buffer.c_str(),1,buffer.size(),file);
+	printf("【%d】\n",buffer.find(argv[1]));
 	delete url;
 	curl_easy_cleanup(con);
 	//}
@@ -127,6 +129,27 @@ static int writer(char * data, size_t size,size_t nmemb,string *writerData)
 {
 	unsigned long sizes=size * nmemb;
 	if(writerData==NULL) return 0;
-	writerData->append(data,sizes);
+	int index=0;
+	char * data2=(char *)malloc(sizes*sizeof(char));
+	for(int i=0;i<sizes;i++)
+	{
+		int spaceF=0;
+		if((data[i]<32||data[i]>127)&&data[i]!='\n')
+		{
+			data2[index]=data[i];
+			index++;
+			spaceF=1;
+		}	
+		else {
+			if(spaceF==1)
+			{
+				data2[index]=' ';
+				index++;
+				spaceF=0;
+			}
+		}
+	}
+	writerData->append(data2,index);
+	free(data2);
 	return sizes;
 }
