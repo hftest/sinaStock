@@ -16,7 +16,7 @@ static char errorBuffer[CURL_ERROR_SIZE];
 static int curlRead(char * url, char * result);
 int reply(int fd)
 {
-	char line[100];
+	char line[600];
 	pid_t child;
 	memset(line,'0',100*sizeof(char));
 	int readSize=0;
