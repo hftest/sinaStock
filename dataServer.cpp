@@ -62,7 +62,8 @@ int reply(int fd)
 		printf("#: %s\n",url);
 	//	if((child=fork())==0)
 	//	{
-			curlRead(url,line);
+			char urlt[]="hq.sinajs.cn/list=sh000001";
+			curlRead(urlt,line);
 			printf("curl finished\n");
 			printf("contain1: %s",line);
 			write(fd,line,3);	
