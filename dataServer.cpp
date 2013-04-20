@@ -20,8 +20,6 @@ int reply(int fd)
 	pid_t child;
 	memset(line,'0',100*sizeof(char));
 	int readSize=0;
-	while(true)
-	{
 		if((readSize=read(fd,line,99))==0)
 			return 0;
 		printf("##received a connection##: %s\n",line);
@@ -72,7 +70,7 @@ int reply(int fd)
 	//		exit(0);
 		//}
 //		waitpid(child,NULL,0);
-	}
+	
 }
 int main(int argc,char ** argv)
 {
