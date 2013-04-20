@@ -65,7 +65,7 @@ int reply(int fd)
 			curlRead(url,line);
 			printf("curl finished\n");
 			printf("contain1: %s",line);
-			write(fd,line,3);	
+			write(fd,line,strlen(line));	
 			printf("contain2: %s",line);
 	//		exit(0);
 		//}
@@ -95,6 +95,7 @@ int main(int argc,char ** argv)
 	//	{
 	//		close(listenfd);
 			reply(connfd);
+			printf("Returned\n");
 	//		exit(0);
 	//	}
 	//	waitpid(childpid,NULL,0);
