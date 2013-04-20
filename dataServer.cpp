@@ -155,8 +155,7 @@ static int writer(char * data, size_t size,size_t nmemb,string *writerData)
 {
 	unsigned long sizes=size * nmemb;
 	if(writerData==NULL) return 0;
-	int index=0;
-	writerData->append(data,index);
+	writerData->append(data,sizes);
 	return sizes;
 }
 static int curlRead(char * url,char * result)
@@ -180,5 +179,7 @@ static int curlRead(char * url,char * result)
 	printf("9");
 	strcpy(result,buffer.c_str());
 	curl_easy_cleanup(con);
+	printf("\ncleaned up\n");
+	printf("result: %s\n",result);
 	return 0;
 }
