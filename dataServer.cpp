@@ -16,12 +16,14 @@ static char errorBuffer[CURL_ERROR_SIZE];
 static int curlRead(char * url, char * result);
 int reply(int fd)
 {
-	char line[600];
 	pid_t child;
-	memset(line,'0',100*sizeof(char));
 	int readSize=0;
-		if((readSize=read(fd,line,99))==0)
+	while(true){
+		char line[60000];
+		memset(line,'0',100*sizeof(char));
+		if((readSize=read(fd,line,17))==0)
 			return 0;
+		line[17]='\0';
 		printf("##received a connection##: %s\n",line);
 		char year[5];
 		char month[3];
@@ -60,18 +62,93 @@ int reply(int fd)
 		strcat(url,"&f=");
 		strcat(url,year);
 		printf("#: %s\n",url);
-	//	if((child=fork())==0)
-	//	{
-			char urlt[]="hq.sinajs.cn/list=sh000001";
-			curlRead(urlt,line);
+		curlRead(url,line);
+			while((strlen(line)<70))
+			{
+				int days1[12]={31,28,31,30,31,30,31,31,30,31,30,31};	
+				int days2[12]={31,29,31,30,31,30,31,31,30,31,30,31};	
+				int iyear=atoi(year);
+				int imonth=atoi(month);
+				int iday=atoi(day);
+				int * days=days1;
+				if(iyear%4==0&&iyear!=2000)
+					days=days2;
+				if(iday==days[imonth])
+				{
+					if(imonth==11)
+					{
+						month[0]='0';
+						month[1]='0';
+						day[0]='0';
+						day[1]='1';
+						year[3]++;
+					}
+					else {
+					if(month[1]=='9')
+					{
+						month[1]='0';
+						month[0]++;
+					}
+					else{
+						month[1]++;
+					}
+					day[0]='0';
+					day[1]='1';
+					}
+				}
+				else{	if(day[1]=='9')
+					{
+						day[1]='0';
+						day[0]++;
+					}	
+					else
+					{
+						day[1]++;
+					}
+				}
+				strcpy(url,"http://ichart.yahoo.com/table.csv?s=");
+				strcat(url,stockno);
+				strcat(url,".SS&a=");
+				strcat(url,month);
+				strcat(url,"&b=");
+				strcat(url,day);
+				strcat(url,"&c=");
+				strcat(url,year);
+				strcat(url,"&d=");
+				strcat(url,month);
+				strcat(url,"&e=");
+				strcat(url,day);
+				strcat(url,"&f=");
+				strcat(url,year);
+				printf("#: %s\n",url);
+				curlRead(url,line);
+			}
 			printf("curl finished\n");
 			printf("contain1: %s",line);
-			write(fd,line,strlen(line));	
-			printf("contain2: %s",line);
-	//		exit(0);
-		//}
-//		waitpid(child,NULL,0);
-	
+			//FIND THE PRICE - BEG
+			int comma=0;
+			int i_line=0;
+			int i_line_p=0;
+			while(line[i_line]!='\0'&&comma!=11)
+			{
+				if(line[i_line]==',')
+					comma++;
+				if(comma==10&&i_line_p==0)
+					i_line_p=i_line+1;
+				i_line++;
+			}
+			line[i_line-1]='\0';
+			printf("i_line: %d, i_line_p: %d, :%s",i_line,i_line_p,line+i_line_p);
+			//FIND THE PRICE - END
+			if(strlen(line)>100)
+			{
+				strcpy(line,"0.00");
+				write(fd,line,5);	
+			}
+			else
+				write(fd,line+i_line_p,i_line-i_line_p);	
+		//	write(fd,line,5);
+	}
 }
 int main(int argc,char ** argv)
 {
@@ -101,6 +178,7 @@ int main(int argc,char ** argv)
 	//	}
 	//	waitpid(childpid,NULL,0);
 		close(connfd);
+		return 0;
 	}
 	return 0;
 }
@@ -181,6 +259,8 @@ static int curlRead(char * url,char * result)
 	printf("9");
 	strcpy(result,buffer.c_str());
 	curl_easy_cleanup(con);
+	if(result[strlen(result)]!='\0')
+		result[strlen(result)]='\0';
 	printf("\ncleaned up\n");
 	printf("result: %s\n",result);
 	return 0;
