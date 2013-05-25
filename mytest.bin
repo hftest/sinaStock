@@ -1,0 +1,268 @@
+#include <string.h>
+#include <string>
+#include <algorithm> 
+#include <iostream>
+#include <deque>
+using namespace std;
+class Pixles
+{
+public:
+    Pixles(int width, int height): Width(width),Height(height)
+    {}
+    virtual ~Pixles() {}
+    int GetWidth() const { return Width; }
+    int GetHeight() const { return Height; }
+private:
+    int Width;
+    int Height;
+};
+//=======================================================================================
+class Sprite : public Pixles
+{
+public:
+    Sprite(int x, int y, int width, int height):Pixles(width, height),PosX(x),PosY(y)
+    {}
+    Sprite(int x, int y, const Pixles& img)
+        : Pixles(img.GetWidth(), img.GetHeight()),
+        PosX(x),PosY(y){}
+    ~Sprite() {}
+    int getX() const { return PosX; }
+    int getY() const { return PosY; }
+private:
+    int PosX;
+    int PosY;
+};
+//=========================================================================================
+class SpriteSheet
+{
+public:
+    SpriteSheet(int width, int height)
+        : Width(width),
+        Height(height)
+    {
+        HeightsDeq.push_back(height);
+        WidthsDeq.push_back(width);
+        OccupiedDeq.resize(1);
+        OccupiedDeq[0] = false;
+    }
+    ~SpriteSheet() {}
+    bool NotAvailable(int row, int col) const 
+    { 
+        int index = row * colSize() + col;
+        if (index < OccupiedDeq.size())
+        {
+            return OccupiedDeq[index];
+        }
+
+        return false;
+    }
+
+    int rowSize() const { return HeightsDeq.size(); }
+    int colSize() const { return WidthsDeq.size(); }
+    int rowHeight(int r) const { return HeightsDeq[r]; }
+    int colWidth(int c) const { return WidthsDeq[c]; }
+
+    const deque<Sprite>& sprites() const { return SpriteDeq; }
+    void setSprites(deque<Pixles>& images)
+    {
+        int i = 0;
+        while (i < images.size())
+        {
+			if (doSetSprite(images[i]))
+                images.erase(images.begin() + i);
+            else
+                ++i;
+        }
+    }
+
+    bool doSetSprite(const Pixles& image)
+    {
+        int x = 0;
+        int y = 0;
+        for (int i = 0; i < rowSize(); ++i)
+        {
+            x = 0;
+            if (rowHeight(i) >= image.GetHeight())
+            {
+                int occupiedWidth = 0;
+                for (int j = 0; j < colSize(); ++j)
+                {
+                    if (NotAvailable(i, j))
+                    {
+                        occupiedWidth += colWidth(j);
+                    }
+                    else
+                    {
+                        int remainingWidth = Width - occupiedWidth;
+                        if (remainingWidth >= image.GetWidth())
+                        {
+                            Sprite sprite(x, y, image);
+                            SpriteDeq.push_back(sprite);
+                            insertArea(i, j, image.GetWidth(), image.GetHeight());
+                            return true;
+                        }
+                    }
+                    x += colWidth(j);
+                }
+            }
+            y += rowHeight(i);
+        }
+        return false;
+    }
+private:
+    deque<Sprite> SpriteDeq;	
+    int Width;
+    int Height;
+    deque<bool> OccupiedDeq;
+    deque<int> HeightsDeq;
+    deque<int> WidthsDeq;
+    void insertArea(int row, int col, int width, int height)
+    {
+        updateDimension(WidthsDeq, col, width);
+        updateDimension(HeightsDeq, row, height);
+        int r = rowSize();
+        int c = colSize();
+        OccupiedDeq.resize(r * c);
+        int x=0,y=0,w=0,h=0;
+        for (int i = 0; i < r; ++i)
+        {
+            x = 0;
+            h = rowHeight(i);
+            for (int j = 0; j < c; ++j)
+            {
+                OccupiedDeq[i * c + j] = false;
+                w = colWidth(j);
+                int spriteSize = SpriteDeq.size();
+                for (int k = 0; k < spriteSize; k++)
+                {
+                    Sprite sprite = SpriteDeq[k];
+                    if(!((x >= (sprite.getX() + sprite.GetWidth())) ||
+						(x + w < sprite.getX()) || 
+                        (y >= (sprite.getY() + sprite.GetHeight())) ||
+						(y + h < sprite.getY())))
+                    {
+		                OccupiedDeq[i * c + j] = true;
+                        break;
+                    }
+                }
+                x += colWidth(j);
+            }
+            y += rowHeight(i);
+        }
+    }
+
+    void updateDimension(deque<int>& arr, int index, int newValue)
+    {
+        int curValue = arr[index];
+
+        if (newValue > curValue)
+        {
+            int i = index + 1;
+            int restValue = newValue - curValue;
+            while (restValue - arr[i] > 0)
+            {
+                restValue -= arr[i];
+                ++i;
+            }
+            if (restValue != 0)
+            {
+                arr[i] -= restValue;
+                arr.insert(arr.begin() + i, restValue);
+            }
+        }
+        else if (newValue < curValue)
+        {
+            arr[index] -= newValue;
+            arr.insert(arr.begin() + index, newValue);
+        }
+    }
+};
+bool InputLoader(string in, deque<Pixles>& images)
+{
+		
+	char *ptrc=new char[in.size()+1];
+	strcpy(ptrc,in.c_str());
+
+	char *ptrc_tok=strtok(ptrc," ");
+	while(ptrc_tok!=NULL)
+	{
+		int length=strlen(ptrc_tok);
+		for(int i=0;i<length;++i)
+		{
+			if(ptrc_tok[i]=='x'||ptrc_tok[i]=='X')
+			{
+				if(i==0)
+					return false;
+				char _w[8];
+				char _h[8];
+				strncpy(_w,ptrc_tok,i);
+				strncpy(_h,ptrc_tok+i+1,length-i-1);
+				_w[i]='\0';
+				_h[length-i-1]='\0';
+				int width=atoi(_w);
+				int height=atoi(_h);
+				int test=0;
+				Pixles img(width, height);
+				images.push_back(img);
+				break;
+			}
+			if(i==length-1)
+				return false;
+		}
+		ptrc_tok=strtok(NULL," ");
+	}
+		
+	delete ptrc;
+    return true;
+}
+void printSheets(const deque<SpriteSheet> &Sheets)
+{
+    int sheetSize = Sheets.size();
+    for (int i = 0; i < sheetSize; ++i)
+    {
+        cout << "sheet " << (i + 1) << endl;
+        const SpriteSheet& sheet = Sheets[i];
+        const deque<Sprite>& sprites = sheet.sprites();
+        int spriteSize = sprites.size();
+        for (int j = 0; j < spriteSize; ++j)
+        {
+            cout << sprites[j].GetWidth() << "x" << sprites[j].GetHeight()<< " " << sprites[j].getX() << " " << sprites[j].getY() << endl;
+        }
+        cout << endl;
+    }
+}
+bool sortFunction(Pixles a,Pixles b)
+{
+	return (a.GetHeight()>b.GetHeight());
+}
+void sortSprites(deque<Pixles>& images)
+{
+	sort(images.begin(),images.end(),sortFunction);
+	int size = images.size();
+}
+int main(int argc, const char **argv)
+{
+    while(true){
+		deque<Pixles> pixles;
+		string input;
+		cout<<"Please Input:"<<endl;
+		cin>>input;
+		//Or
+		input="864x480 78x107 410x321 188x167 315x274 229x163 629x236 39x32 193x56 543x155";
+		if(!InputLoader(input,pixles))
+		{	
+			cout<<"Invalid Input\n";
+			continue;
+		}
+		sortSprites(pixles);
+		deque<SpriteSheet> spriteSheets;
+		while (pixles.size() > 0)
+		{
+			SpriteSheet sheet(1024, 1024);
+			sheet.setSprites(pixles);
+			spriteSheets.push_back(sheet);
+		}
+		printSheets(spriteSheets);
+	}
+	return 0;
+}
