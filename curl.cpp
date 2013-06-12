@@ -3,7 +3,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include "/root/source/curl-7.29.0/include/curl/curl.h"
+#include <curl/curl.h> //"/root/source/curl-7.29.0/include/curl/curl.h"
 using namespace std;
 bool curlInit(CURL * & conn,char *url,string *buffer); 
 static int writer(char * data, size_t size,size_t nmemb,string *writerData);
@@ -24,8 +24,8 @@ int main()
 		//list[index]=end;
 		//index++;
 		//printf("%d:",index);
-//		p_list[i_list][index]=end;
-//		index++;
+		//p_list[i_list][index]=end;
+		//index++;
 		if(end=='\n')
 		{
 			p_list[i_list][index]='\0';
@@ -44,7 +44,7 @@ int main()
 	for(int i=0;i<3;i++){
 	char * url=new char[strlen(p_list[i])+19];
 	strcpy(url,"hq.sinajs.cn/list=");
-//	char url[]="hq.sinajs.cn/list=";
+	//char url[]="hq.sinajs.cn/list=";
 	strcat(url,p_list[i]);
 	CURL *con=NULL;
 	CURLcode code;
@@ -61,9 +61,9 @@ int main()
 		printf("Failed perform\n");
 		return -2;
 	}
-//	printf("#%s#\n",buffer.c_str());
+	//printf("#%s#\n",buffer.c_str());
 	printf("length: %d\n",buffer.size());
-//	printf("ERROR: %s\n",errorBuffer);
+	//printf("ERROR: %s\n",errorBuffer);
 	fwrite(buffer.c_str(),1,buffer.size(),file);
 	delete url;
 	curl_easy_cleanup(con);
@@ -71,7 +71,7 @@ int main()
 	fclose(file);
 	return 0;
 }
-bool curlInit(CURL * & conn,char *url,string *buffer) 
+bool curlInit(CURL * &conn,char *url,string *buffer) 
 {
 	CURLcode code;
 	conn=curl_easy_init();
@@ -92,14 +92,14 @@ bool curlInit(CURL * & conn,char *url,string *buffer)
 	printf("3");
 	if(code!=CURLE_OK)
 	{
-//		fprintf(stdout,"Failed to set url|%s|:|%s|\n",url,errorBuffer);
+		//fprintf(stdout,"Failed to set url|%s|:|%s|\n",url,errorBuffer);
 		return false;
 	}
 	code=curl_easy_setopt(conn,CURLOPT_FOLLOWLOCATION,1);
 	printf("4");
 	if(code!=CURLE_OK)
 	{
-//		fprintf(stdout,"Fail to set redirection option |%s|\n",errorBuffer);
+		//fprintf(stdout,"Fail to set redirection option |%s|\n",errorBuffer);
 		return false;
 	}
 	code=curl_easy_setopt(conn,CURLOPT_WRITEFUNCTION,writer);
